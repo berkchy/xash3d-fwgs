@@ -661,7 +661,9 @@ void Host_Frame( double time )
 	// decide the simulation time
 	if( !Host_FilterTime( time ))
 		return;
-
+	
+	Host_UpdateSkipFrames();
+	
 	t1 = Platform_DoubleTime();
 
 	if( host.framecount == 0 )
@@ -1061,7 +1063,10 @@ static void Host_InitCommon( int argc, char **argv, const char *progname, qboole
 	// share developer level across all dlls
 	Cvar_DirectSetValue( &host_developer, developer );
 	Cvar_RegisterVariable( &sys_ticrate );
-
+	Cvar_RegisterVariable( &cl_skipframes );
+    Cvar_RegisterVariable( &cl_skipframes_adaptive );
+    Cvar_RegisterVariable( &cl_skipframes_threshold );
+    
 	if( Sys_GetIntFromCmdLine( "-sys_ticrate", &ticrate ))
 		Cvar_DirectSetValue( &sys_ticrate, bound( MIN_FPS, ticrate, MAX_FPS_HARD ));
 
@@ -1322,6 +1327,57 @@ void EXPORT Host_Shutdown( void );
 void EXPORT Host_Shutdown( void )
 {
 	Host_ShutdownWithReason( "launcher shutdown" );
+}
+
+/*
+=================
+Host_UpdateSkipFrames
+
+Calculate whether current frame should be skipped for performance
+=================
+*/
+static qboolean Host_UpdateSkipFrames( void )
+{
+    static float last_fps_update = 0.0f;
+    static uint frame_counter = 0;
+    
+    if( host.realtime - last_fps_update > 0.5f )
+    {
+        host.current_fps = frame_counter / (host.realtime - last_fps_update);
+        frame_counter = 0;
+        last_fps_update = host.realtime;
+    }
+    frame_counter++;
+
+    if( cl_skipframes.value <= 0 )
+    {
+        host.skipframe_counter = 0;
+        host.should_skip_frame = false;
+        return false;
+    }
+
+    if( cl_skipframes_adaptive.value > 0 )
+    {
+        if( host.current_fps < cl_skipframes_threshold.value )
+        {
+            host.should_skip_frame = (host.skipframe_counter % ((int)cl_skipframes.value + 1)) != 0;
+        }
+        else
+        {
+            host.should_skip_frame = false;
+        }
+    }
+    else
+    {
+        host.should_skip_frame = (host.skipframe_counter % ((int)cl_skipframes.value + 1)) != 0;
+    }
+
+    host.skipframe_counter++;
+    
+    if( !host.should_skip_frame )
+        host.skipframe_rendered++;
+
+    return host.should_skip_frame;
 }
 
 /*
