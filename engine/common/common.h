@@ -102,14 +102,14 @@ typedef enum instance_e
 #endif
 
 // PERFORMANCE INFO
-#define MIN_FPS         20.0f    // host minimum fps value for maxfps.
-#define MAX_FPS_SOFT    200.0f   // soft limit for maxfps.
-#define MAX_FPS_HARD    1000.0f  // multiplayer hard limit for maxfps.
-#define HOST_FPS		100.0f		// multiplayer games typical fps
+#define MIN_FPS         5.0f    // host minimum fps value for maxfps.
+#define MAX_FPS_SOFT    100000.0f   // soft limit for maxfps.
+#define MAX_FPS_HARD    100000.0f  // multiplayer hard limit for maxfps.
+#define HOST_FPS		100000.0f		// multiplayer games typical fps
 
 #define MAX_FRAMETIME	0.25f
 #define MIN_FRAMETIME	0.0001f
-#define GAME_FPS		20.0f
+#define GAME_FPS		60.0f
 
 #define MAX_CMD_TOKENS	80		// cmd tokens
 #define MAX_ENTNUMBER	99999		// for server and client parsing
@@ -295,6 +295,12 @@ typedef struct host_parm_s
 	string        downloadfile;     // filename to be downloading
 	int           downloadcount;    // how many files remain to downloading
 	char          deferred_cmd[128];// deferred commands
+
+    // Required areas for the Skipframes system
+    float       current_fps;
+    int         skipframe_counter;
+    qboolean    should_skip_frame;
+    int         skipframe_rendered;
 
 	host_redirect_t rd; // remote console
 
