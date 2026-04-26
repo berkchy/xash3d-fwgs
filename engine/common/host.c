@@ -66,6 +66,11 @@ struct tests_stats_s tests_stats;
 CVAR_DEFINE( host_developer, "developer", "0", FCVAR_FILTERABLE, "engine is in development-mode" );
 CVAR_DEFINE_AUTO( sys_timescale, "1.0", FCVAR_FILTERABLE, "scale frame time" );
 
+// Skipframes system
+static CVAR_DEFINE_AUTO( cl_skipframes, "0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "skip rendering frames to improve performance (0=disabled)" );
+static CVAR_DEFINE_AUTO( cl_skipframes_adaptive, "1", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "adaptive skipframes based on FPS" );
+static CVAR_DEFINE_AUTO( cl_skipframes_threshold, "60", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "FPS threshold below which skipframes activate" );
+
 static CVAR_DEFINE_AUTO( sys_ticrate, "100", FCVAR_SERVER, "framerate in dedicated mode" );
 static CVAR_DEFINE_AUTO( sv_hibernate_when_empty, "1", 0, "lower CPU usage when server has no players" );
 static CVAR_DEFINE_AUTO( sv_hibernate_when_empty_sleep, "500", 0, "sleeptime value when sv_hibernate_when_empty is active" );
@@ -1063,9 +1068,6 @@ static void Host_InitCommon( int argc, char **argv, const char *progname, qboole
 	// share developer level across all dlls
 	Cvar_DirectSetValue( &host_developer, developer );
 	Cvar_RegisterVariable( &sys_ticrate );
-	Cvar_RegisterVariable( &cl_skipframes );
-    Cvar_RegisterVariable( &cl_skipframes_adaptive );
-    Cvar_RegisterVariable( &cl_skipframes_threshold );
     
 	if( Sys_GetIntFromCmdLine( "-sys_ticrate", &ticrate ))
 		Cvar_DirectSetValue( &sys_ticrate, bound( MIN_FPS, ticrate, MAX_FPS_HARD ));
@@ -1185,6 +1187,9 @@ int EXPORT Host_Main( int argc, char **argv, const char *progname, int bChangeGa
 	Cvar_RegisterVariable( &host_limitlocal );
 	Cvar_RegisterVariable( &con_gamemaps );
 	Cvar_RegisterVariable( &sys_timescale );
+	Cvar_RegisterVariable( &cl_skipframes );
+    Cvar_RegisterVariable( &cl_skipframes_adaptive );
+    Cvar_RegisterVariable( &cl_skipframes_threshold );
 	Cvar_RegisterVariable( &sv_hibernate_when_empty );
 	Cvar_RegisterVariable( &sv_hibernate_when_empty_include_bots );
 	Cvar_RegisterVariable( &sv_hibernate_when_empty_sleep );
@@ -1331,57 +1336,6 @@ void EXPORT Host_Shutdown( void )
 
 /*
 =================
-Host_UpdateSkipFrames
-
-Calculate whether current frame should be skipped for performance
-=================
-*/
-static qboolean Host_UpdateSkipFrames( void )
-{
-    static float last_fps_update = 0.0f;
-    static uint frame_counter = 0;
-    
-    if( host.realtime - last_fps_update > 0.5f )
-    {
-        host.current_fps = frame_counter / (host.realtime - last_fps_update);
-        frame_counter = 0;
-        last_fps_update = host.realtime;
-    }
-    frame_counter++;
-
-    if( cl_skipframes.value <= 0 )
-    {
-        host.skipframe_counter = 0;
-        host.should_skip_frame = false;
-        return false;
-    }
-
-    if( cl_skipframes_adaptive.value > 0 )
-    {
-        if( host.current_fps < cl_skipframes_threshold.value )
-        {
-            host.should_skip_frame = (host.skipframe_counter % ((int)cl_skipframes.value + 1)) != 0;
-        }
-        else
-        {
-            host.should_skip_frame = false;
-        }
-    }
-    else
-    {
-        host.should_skip_frame = (host.skipframe_counter % ((int)cl_skipframes.value + 1)) != 0;
-    }
-
-    host.skipframe_counter++;
-    
-    if( !host.should_skip_frame )
-        host.skipframe_rendered++;
-
-    return host.should_skip_frame;
-}
-
-/*
-=================
 Host_Shutdown
 =================
 */
@@ -1427,4 +1381,55 @@ void Host_ShutdownWithReason( const char *reason )
 	// restore filter
 	Sys_RestoreCrashHandler();
 	Sys_CloseLog( reason );
+}
+
+/*
+=================
+Host_UpdateSkipFrames
+
+Calculate whether current frame should be skipped for performance
+=================
+*/
+qboolean Host_UpdateSkipFrames( void )
+{
+    static float last_fps_update = 0.0f;
+    static uint frame_counter = 0;
+    
+    if( host.realtime - last_fps_update > 0.5f )
+    {
+        host.current_fps = frame_counter / (host.realtime - last_fps_update);
+        frame_counter = 0;
+        last_fps_update = host.realtime;
+    }
+    frame_counter++;
+
+    if( cl_skipframes.value <= 0 )
+    {
+        host.skipframe_counter = 0;
+        host.should_skip_frame = false;
+        return false;
+    }
+
+    if( cl_skipframes_adaptive.value > 0 )
+    {
+        if( host.current_fps < cl_skipframes_threshold.value )
+        {
+            host.should_skip_frame = (host.skipframe_counter % ((int)cl_skipframes.value + 1)) != 0;
+        }
+        else
+        {
+            host.should_skip_frame = false;
+        }
+    }
+    else
+    {
+        host.should_skip_frame = (host.skipframe_counter % ((int)cl_skipframes.value + 1)) != 0;
+    }
+
+    host.skipframe_counter++;
+    
+    if( !host.should_skip_frame )
+        host.skipframe_rendered++;
+
+    return host.should_skip_frame;
 }
