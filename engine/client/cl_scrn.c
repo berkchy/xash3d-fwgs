@@ -682,6 +682,14 @@ void SCR_UpdateScreen( void )
 {
 	qboolean screen_redraw = true; // assume screen has been redrawn
 
+	// Skip rendering if skipframes is enabled and this frame should be skipped
+	if( host.should_skip_frame && cls.state == ca_active )
+	{
+		// Still run console and update game logic, but skip actual rendering
+		Con_RunConsole();
+		return;
+	}
+
 	if( !V_PreRender( )) return;
 
 	switch( cls.state )
