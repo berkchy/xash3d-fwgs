@@ -1390,7 +1390,7 @@ Host_UpdateSkipFrames
 Calculate whether current frame should be skipped for performance
 =================
 */
-qboolean Host_UpdateSkipFrames( void )
+static qboolean Host_UpdateSkipFrames( void )
 {
     static float last_fps_update = 0.0f;
     static uint frame_counter = 0;
