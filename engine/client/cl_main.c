@@ -95,7 +95,7 @@ static CVAR_DEFINE_AUTO( bottomcolor, "0", FCVAR_USERINFO|FCVAR_ARCHIVE|FCVAR_FI
 CVAR_DEFINE_AUTO( rate, "25000", FCVAR_USERINFO|FCVAR_ARCHIVE|FCVAR_FILTERABLE, "player network rate" );
 
 CVAR_DEFINE_AUTO( cl_ticket_generator, "revemu2013", FCVAR_ARCHIVE, "you wouldn't steal a car" );
-static CVAR_DEFINE_AUTO( cl_advertise_engine_in_name, "1", FCVAR_ARCHIVE|FCVAR_PRIVILEGED, "add [Xash3D] to the nickname when connecting to GoldSrc servers" );
+static CVAR_DEFINE_AUTO( cl_advertise_engine_in_name, "0", FCVAR_ARCHIVE|FCVAR_PRIVILEGED, "add [Xash3D] to the nickname when connecting to GoldSrc servers" );
 static CVAR_DEFINE_AUTO( cl_log_outofband, "0", FCVAR_ARCHIVE, "log out of band messages, can be useful for server admins and for engine debugging" );
 static CVAR_DEFINE_AUTO( cl_autorecord, "0", 0, "automatically start recording a demo after joining the server" );
 
@@ -1091,9 +1091,7 @@ void CL_SendGoldSrcConnectPacket( netadr_t adr, int challenge, const void *ticke
 	Info_SetValueForKey( protinfo, "raw", "steam", sizeof( protinfo ));
 	CL_GetCDKey( protinfo, sizeof( protinfo ));
 	name = Info_ValueForKey( cls.userinfo, "name" );
-	if( cl_advertise_engine_in_name.value && Q_strnicmp( name, "[Xash3D]", 8 ))
-		Info_SetValueForKeyf( cls.userinfo, "name", sizeof( cls.userinfo ), "[Xash3D]%s", name );
-
+	
 	MSG_Init( &send, "GoldSrcConnect", send_buf, sizeof( send_buf ));
 	MSG_WriteLong( &send, NET_HEADER_OUTOFBANDPACKET );
 	MSG_WriteStringf( &send, C2S_CONNECT" %i %i \"%s\" \"%s\"\n",
@@ -3111,11 +3109,7 @@ void CL_UpdateInfo( const char *key, const char *value )
 	switch( cls.legacymode )
 	{
 	case PROTO_GOLDSRC:
-		if( cl_advertise_engine_in_name.value && !Q_stricmp( key, "name" ) && Q_strnicmp( value, "[Xash3D]", 8 ))
-		{
-			CL_ServerCommand( true, "setinfo \"%s\" \"[Xash3D]%s\"\n", key, value );
-			break;
-		}
+		break;
 		// intentional fallthrough
 	default:
 		CL_ServerCommand( true, "setinfo \"%s\" \"%s\"\n", key, value );
