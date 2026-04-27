@@ -324,10 +324,10 @@ static int HTTP_FileConnect( httpfile_t *file )
 
 	file->blocktime = 0;
 
-	if( COM_StringEmpty( http_useragent.string ) || !Q_strcmp( http_useragent.string, "xash3d" ))
+	if( COM_StringEmpty( http_useragent.string ) || !Q_strcmp( http_useragent.string, "steam" ))
 	{
-		Q_snprintf( useragent, sizeof( useragent ), "%s/%s (%s-%s; build %d; %s)",
-			XASH_ENGINE_NAME, XASH_VERSION, Q_buildos( ), Q_buildarch( ), Q_buildnum( ), g_buildcommit );
+		Q_snprintf( useragent, sizeof( useragent ), "%s/%s (Android-arm64; build %d; %s)",
+			XASH_ENGINE_NAME, XASH_VERSION, Q_buildnum( ), g_buildcommit );
 	}
 	else Q_strncpy( useragent, http_useragent.string, sizeof( useragent ));
 
