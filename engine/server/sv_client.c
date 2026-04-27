@@ -2202,7 +2202,7 @@ static qboolean SV_SendBuildInfo_f( sv_client_t *cl )
 		return false;
 
 	SV_ClientPrintf( cl, "Server running " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s, Android-arm64)\n",
-		Q_buildnum(), g_buildcommit, );
+		Q_buildnum(), g_buildcommit );
 	return true;
 }
 
