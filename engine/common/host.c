@@ -67,9 +67,9 @@ CVAR_DEFINE( host_developer, "developer", "0", FCVAR_FILTERABLE, "engine is in d
 CVAR_DEFINE_AUTO( sys_timescale, "1.0", FCVAR_FILTERABLE, "scale frame time" );
 
 // Skipframes system
-static CVAR_DEFINE_AUTO( cl_skipframes, "0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "skip rendering frames to improve performance (0=disabled)" );
-static CVAR_DEFINE_AUTO( cl_skipframes_adaptive, "1", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "adaptive skipframes based on FPS" );
-static CVAR_DEFINE_AUTO( cl_skipframes_threshold, "60", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "FPS threshold below which skipframes activate" );
+static CVAR_DEFINE_AUTO( cl_skipframes, "1", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "skip rendering frames to improve performance (0=disabled)" );
+static CVAR_DEFINE_AUTO( cl_skipframes_adaptive, "0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "adaptive skipframes based on FPS" );
+static CVAR_DEFINE_AUTO( cl_skipframes_threshold, "240", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "FPS threshold below which skipframes activate" );
 
 static CVAR_DEFINE_AUTO( sys_ticrate, "100", FCVAR_SERVER, "framerate in dedicated mode" );
 static CVAR_DEFINE_AUTO( sv_hibernate_when_empty, "1", 0, "lower CPU usage when server has no players" );
@@ -79,10 +79,10 @@ static CVAR_DEFINE_AUTO( host_serverstate, "0", FCVAR_READ_ONLY, "displays curre
 static CVAR_DEFINE_AUTO( host_gameloaded, "0", FCVAR_READ_ONLY, "inidcates a loaded game.dll" );
 static CVAR_DEFINE_AUTO( host_clientloaded, "0", FCVAR_READ_ONLY, "inidcates a loaded client.dll" );
 CVAR_DEFINE_AUTO( host_limitlocal, "0", 0, "apply cl_cmdrate and rate to loopback connection" );
-CVAR_DEFINE( host_maxfps, "fps_max", "72", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "host fps upper limit" );
-CVAR_DEFINE_AUTO( fps_override, "0", FCVAR_FILTERABLE, "unlock higher framerate values, not supported" );
+CVAR_DEFINE( host_maxfps, "fps_max", "1001.456789", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "host fps upper limit" );
+CVAR_DEFINE_AUTO( fps_override, "1", FCVAR_FILTERABLE, "unlock higher framerate values, not supported" );
 static CVAR_DEFINE_AUTO( host_framerate, "0", FCVAR_FILTERABLE, "locks frame timing to this value in seconds" );
-static CVAR_DEFINE( host_sleeptime, "sleeptime", "1", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "milliseconds to sleep for each frame. higher values reduce fps accuracy" );
+static CVAR_DEFINE( host_sleeptime, "sleeptime", "0", FCVAR_ARCHIVE|FCVAR_FILTERABLE, "milliseconds to sleep for each frame. higher values reduce fps accuracy" );
 static CVAR_DEFINE_AUTO( host_sleeptime_debug, "0", 0, "print sleeps between frames" );
 CVAR_DEFINE_AUTO( host_allow_materials, "0", FCVAR_LATCH|FCVAR_ARCHIVE, "allow texture replacements from materials/ folder" );
 CVAR_DEFINE( con_gamemaps, "con_mapfilter", "1", FCVAR_ARCHIVE, "when true show only maps in game folder" );
