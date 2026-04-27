@@ -151,7 +151,7 @@ void Sys_CloseLog( const char *finalmsg )
 
 	fputc( '\n', s_ld.logfile );
 	fputs( "================================================================================\n", s_ld.logfile );
-	fprintf( s_ld.logfile, "%s (%i, %s, %s, %s-%s)\n", s_ld.title, Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch());
+	fprintf( s_ld.logfile, "%s (%i, %s, %s, Android-arm64)\n", s_ld.title, Q_buildnum(), g_buildcommit, g_buildbranch);
 	fprintf( s_ld.logfile, "Stopped with reason \"%s\" at %s\n", finalmsg, Q_timestamp( TIME_FULL ));
 	fputs( "================================================================================\n", s_ld.logfile );
 	fclose( s_ld.logfile );
