@@ -120,7 +120,7 @@ static const feature_message_t engine_features[] =
 
 static void Host_MakeVersionString( char *out, size_t len )
 {
-	Q_snprintf( out, len, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos(), Q_buildarch(), Q_buildnum( ));
+	Q_snprintf( out, len, XASH_ENGINE_NAME " %i/" XASH_VERSION " (Android-arm64 build %i)", PROTOCOL_VERSION, Q_buildos(), Q_buildarch(), Q_buildnum( ));
 }
 
 static void Host_PrintUsage( const char *exename )
