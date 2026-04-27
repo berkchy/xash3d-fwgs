@@ -31,8 +31,8 @@ static void Sys_Crash( int signal, siginfo_t *si, void *context )
 	qboolean detailed_message = false;
 
 	// safe actions first, stack and memory may be corrupted
-	len = Q_snprintf( message, sizeof( message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s)\n",
-		Q_buildnum(), g_buildcommit, g_buildbranch, Q_buildos(), Q_buildarch() );
+	len = Q_snprintf( message, sizeof( message ), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, Android-arm64)\n",
+		Q_buildnum(), g_buildcommit, g_buildbranch );
 
 #if !XASH_FREEBSD && !XASH_NETBSD && !XASH_OPENBSD && !XASH_APPLE
 	len += Q_snprintf( message + len, sizeof( message ) - len, "Crash: signal %d errno %d with code %d at %p %p\n", signal, si->si_errno, si->si_code, si->si_addr, si->si_ptr );
