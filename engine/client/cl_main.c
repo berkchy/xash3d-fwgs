@@ -1148,8 +1148,8 @@ static void CL_SendConnectPacket( connprotocol_t proto, int challenge )
 		Info_SetValueForKeyf( protinfo, "d", sizeof( protinfo ),  "%d", input_devices );
 		Info_SetValueForKey( protinfo, "v", XASH_VERSION, sizeof( protinfo ) );
 		Info_SetValueForKeyf( protinfo, "b", sizeof( protinfo ), "%d", Q_buildnum( ));
-		Info_SetValueForKey( protinfo, "o", Q_buildos(), sizeof( protinfo ) );
-		Info_SetValueForKey( protinfo, "a", Q_buildarch(), sizeof( protinfo ) );
+		Info_SetValueForKey( protinfo, "o", "Android", sizeof( protinfo ) );
+		Info_SetValueForKey( protinfo, "a", "arm64", sizeof( protinfo ) );
 	}
 
 	cls.broker_wait = false;
