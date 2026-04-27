@@ -1247,10 +1247,10 @@ int EXPORT Host_Main( int argc, char **argv, const char *progname, int bChangeGa
 	Cvar_RegisterVariable( &sv_background );
 	Cvar_RegisterVariable( &cl_background );
 
-	Cvar_Getf( "buildnum", FCVAR_READ_ONLY, "returns a current build number", "%i", Q_buildnum_compat());
-	Cvar_Getf( "ver", FCVAR_READ_ONLY, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION, XASH_COMPAT_VERSION, Q_buildnum_compat());
-	Cvar_Getf( "host_ver", FCVAR_READ_ONLY, "detailed info about this build", "%i " XASH_VERSION " Android arm64 %s", Q_buildnum(), g_buildcommit);
-	Cvar_Getf( "host_lowmemorymode", FCVAR_READ_ONLY, "indicates if engine compiled for low RAM consumption (0 - normal, 1 - low engine limits, 2 - low protocol limits)", "2" );
+	Cvar_Getf( "buildnum", FCVAR_ARCHIVE, "returns a current build number", "%i", Q_buildnum_compat());
+	Cvar_Getf( "ver", FCVAR_ARCHIVE, "shows an engine version", "%i/%s (hw build %i)", PROTOCOL_VERSION, XASH_COMPAT_VERSION, Q_buildnum_compat());
+	Cvar_Getf( "host_ver", FCVAR_ARCHIVE, "detailed info about this build", "%i " XASH_VERSION " Android arm64 %s", Q_buildnum(), g_buildcommit);
+	Cvar_Getf( "host_lowmemorymode", FCVAR_ARCHIVE, "indicates if engine compiled for low RAM consumption (0 - normal, 1 - low engine limits, 2 - low protocol limits)", "0" );
 
 	Cvar_Get( "host_hl25_extended_structs",
 #if SUPPORT_HL25_EXTENDED_STRUCTS
