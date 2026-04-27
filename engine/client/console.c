@@ -1957,7 +1957,7 @@ static void Con_DrawSolidConsole( int lines )
 	// draw current version
 	memcpy( color, g_color_table[7], sizeof( color ));
 
-	Q_snprintf( curbuild, MAX_STRING, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos(), Q_buildarch(), Q_buildnum( ));
+	Q_snprintf( curbuild, MAX_STRING, XASH_ENGINE_NAME " %i/" XASH_VERSION " (Android-arm64 build %i)", PROTOCOL_VERSION, Q_buildnum( ));
 
 	Con_DrawStringLen( curbuild, &stringLen, &charH );
 
@@ -2096,7 +2096,7 @@ void Con_DrawVersion( void )
 	if( cls.key_dest == key_menu )
 	{
 		Q_snprintf( curbuild, sizeof( curbuild ),
-			"v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos(), Q_buildarch(), Q_buildnum( ));
+			"v%i/" XASH_VERSION " (Android-arm64 build %i)", PROTOCOL_VERSION, Q_buildnum( ));
 	}
 	else
 	{
@@ -2113,7 +2113,7 @@ void Con_DrawVersion( void )
 			return;
 
 		Q_snprintf( curbuild, sizeof( curbuild ),
-			XASH_ENGINE_NAME " v%i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION, Q_buildos(), Q_buildarch(), Q_buildnum( ));
+			XASH_ENGINE_NAME " v%i/" XASH_VERSION " (Android-arm64 build %i)", PROTOCOL_VERSION, Q_buildnum( ));
 	}
 
 	Con_DrawStringLen( curbuild, &stringLen, &charH );
