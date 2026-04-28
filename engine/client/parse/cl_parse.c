@@ -2611,14 +2611,14 @@ void CL_ParseServerMessage(sizebuf_t *msg)
         oldReadCount = MSG_GetNumBytesRead(msg);
         cmd = MSG_ReadServerCmd(msg);
 
-        // Loglama (geri sarıyoruz)
+        // Loglama - Güvenli şekilde
         switch (cmd)
         {
             case svc_stufftext:
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[STUFFTEXT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount << 3, SEEK_SET);   // 8 bit = 1 byte
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
             }
 
@@ -2626,7 +2626,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[PRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount << 3, SEEK_SET);
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
             }
 
@@ -2634,16 +2634,18 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[CENTERPRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount << 3, SEEK_SET);
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
             }
 
             case svc_event:
                 Con_Printf("[EVENT] Event received\n");
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
 
             case svc_event_reliable:
                 Con_Printf("[EVENT] Reliable Event received\n");
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
 
             default:
