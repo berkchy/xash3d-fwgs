@@ -2589,146 +2589,208 @@ CL_ParseServerMessage
 dispatch messages
 =====================
 */
-void CL_ParseServerMessage( sizebuf_t *msg )
+void CL_ParseServerMessage(sizebuf_t *msg)
 {
-	size_t		bufStart, playerbytes;
-	int		cmd;
-	int		old_background;
+    size_t bufStart;
+    int cmd;
+    int oldReadCount;
 
-	// parse the message
-	while( 1 )
-	{
-		if( MSG_CheckOverflow( msg ))
-		{
-			Host_Error( "%s: overflow!\n", __func__ );
-			return;
-		}
+    while (1)
+    {
+        if (MSG_CheckOverflow(msg))
+        {
+            Host_Error("%s: overflow!\n", __func__);
+            return;
+        }
 
-		// mark start position
-		bufStart = MSG_GetNumBytesRead( msg );
+        bufStart = MSG_GetNumBytesRead(msg);
 
-		// end of message (align bits)
-		if( MSG_GetNumBitsLeft( msg ) < 8 )
-			break;
+        if (MSG_GetNumBitsLeft(msg) < 8)
+            break;
 
-		cmd = MSG_ReadServerCmd( msg );
+        oldReadCount = msg->readcount;
+        cmd = MSG_ReadServerCmd(msg);
+        msg->readcount = oldReadCount;
 
-		// record command for debugging spew on parse problem
-		CL_Parse_RecordCommand( cmd, bufStart );
+        // Packet Logging
+        switch (cmd)
+        {
+            case svc_stufftext:
+            {
+                char *str = MSG_ReadString(msg);
+                Con_Printf("[STUFFTEXT] %s\n", str);
+                msg->readcount = oldReadCount;
+                break;
+            }
 
-		if( CL_ParseCommonMessage( msg, PROTO_CURRENT, cmd, bufStart ))
-			continue;
+            case svc_print:
+            {
+                char *str = MSG_ReadString(msg);
+                Con_Printf("[PRINT] %s\n", str);
+                msg->readcount = oldReadCount;
+                break;
+            }
 
-		if( CL_ParseCommonHLMessage( msg, PROTO_CURRENT, cmd, bufStart ))
-			continue;
+            case svc_centerprint:
+            {
+                char *str = MSG_ReadString(msg);
+                Con_Printf("[CENTERPRINT] %s\n", str);
+                msg->readcount = oldReadCount;
+                break;
+            }
 
-		// other commands
-		switch( cmd )
-		{
-		case svc_disconnect:
-			CL_Drop ();
-			Host_AbortCurrentFrame ();
-			break;
-		case svc_event:
-			CL_ParseEvent( msg, PROTO_CURRENT );
-			cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead( msg ) - bufStart;
-			break;
-		case svc_changing:
-			old_background = cl.background;
-			if( MSG_ReadOneBit( msg ))
-			{
-				int maxclients = cl.maxclients;
+            case svc_event:
+                Con_Printf("[EVENT] Event received\n");
+                break;
 
-				cls.changelevel = true;
-				S_StopAllSounds( true );
+            case svc_event_reliable:
+                Con_Printf("[EVENT] Reliable Event received\n");
+                break;
 
-				Con_Printf( "Server changing, reconnecting\n" );
+            case svc_sound:
+                Con_Printf("[SOUND] Sound packet received\n");
+                break;
 
-				if( cls.demoplayback )
-				{
-					SCR_BeginLoadingPlaque( cl.background );
-					cls.changedemo = true;
-				}
+            default:
+                if (cmd >= 0 && cmd < 256)
+                    Con_Printf("[SVC] Command: %d\n", cmd);
+                break;
+        }
 
-				CL_ClearState();
-				CL_InitEdicts( maxclients ); // re-arrange edicts
-			}
-			else Con_Printf( "Server disconnected, reconnecting\n" );
+        // Original parsing
+        CL_Parse_RecordCommand(cmd, bufStart);
 
-			if( cls.demoplayback )
-			{
-				cl.background = (cls.demonum != -1) ? true : false;
-				cls.state = ca_connected;
-			}
-			else
-			{
-				// g-cont. local client skip the challenge
-				if( SV_Active( ))
-					cls.state = ca_disconnected;
-				else cls.state = ca_connecting;
-				cl.background = old_background;
-				cls.connect_time = MAX_HEARTBEAT;
-				memset( &cls.bandwidth_test, 0, sizeof( cls.bandwidth_test ));
-				cls.connect_retry = 0;
-			}
-			break;
-		case svc_sound:
-			CL_ParseSoundPacket( msg, false );
-			cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead( msg ) - bufStart;
-			break;
-		case svc_deltatable:
-			Delta_ParseTableField( msg );
-			break;
-		case svc_clientdata:
-			CL_ParseClientData( msg, PROTO_CURRENT );
-			cl.frames[cl.parsecountmod].graphdata.client += MSG_GetNumBytesRead( msg ) - bufStart;
-			break;
-		case svc_resource:
-			CL_ParseResource( msg );
-			break;
-		case svc_pings:
-			CL_UpdateUserPings( msg );
-			break;
-		case svc_restoresound:
-			CL_ParseSoundPacket( msg, true );
-			cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead( msg ) - bufStart;
-			break;
-		case svc_spawnstatic:
-			CL_ParseStaticEntity( msg );
-			break;
-		case svc_event_reliable:
-			CL_ParseReliableEvent( msg, PROTO_CURRENT );
-			cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead( msg ) - bufStart;
-			break;
-		case svc_spawnbaseline:
-			CL_ParseBaseline( msg, PROTO_CURRENT );
-			break;
-		case svc_setpause:
-			cl.paused = ( MSG_ReadOneBit( msg ) != 0 );
-			break;
-		case svc_bspdecal:
-			CL_ParseStaticDecal( msg );
-			break;
-		case svc_packetentities:
-			playerbytes = CL_ParsePacketEntities( msg, false, PROTO_CURRENT );
-			cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
-			cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead( msg ) - bufStart - playerbytes;
-			break;
-		case svc_deltapacketentities:
-			playerbytes = CL_ParsePacketEntities( msg, true, PROTO_CURRENT );
-			cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
-			cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead( msg ) - bufStart - playerbytes;
-			break;
-		case svc_resourcelist:
-			CL_ParseResourceList( msg, PROTO_CURRENT );
-			break;
-		case svc_deltamovevars:
-			CL_ParseMovevars( msg );
-			break;
-		default:
-			CL_ParseUserMessage( msg, cmd, PROTO_CURRENT );
-			cl.frames[cl.parsecountmod].graphdata.usr += MSG_GetNumBytesRead( msg ) - bufStart;
-			break;
-		}
-	}
+        if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
+            continue;
+
+        if (CL_ParseCommonHLMessage(msg, PROTO_CURRENT, cmd, bufStart))
+            continue;
+
+        switch (cmd)
+        {
+            case svc_disconnect:
+                CL_Drop();
+                Host_AbortCurrentFrame();
+                break;
+
+            case svc_changing:
+            {
+                int old_background = cl.background;
+                if (MSG_ReadOneBit(msg))
+                {
+                    int maxclients = cl.maxclients;
+                    cls.changelevel = true;
+                    S_StopAllSounds(true);
+                    Con_Printf("Server changing, reconnecting\n");
+
+                    if (cls.demoplayback)
+                    {
+                        SCR_BeginLoadingPlaque(cl.background);
+                        cls.changedemo = true;
+                    }
+
+                    CL_ClearState();
+                    CL_InitEdicts(maxclients);
+                }
+                else 
+                    Con_Printf("Server disconnected, reconnecting\n");
+
+                if (cls.demoplayback)
+                {
+                    cl.background = (cls.demonum != -1) ? true : false;
+                    cls.state = ca_connected;
+                }
+                else
+                {
+                    if (SV_Active())
+                        cls.state = ca_disconnected;
+                    else 
+                        cls.state = ca_connecting;
+
+                    cl.background = old_background;
+                    cls.connect_time = MAX_HEARTBEAT;
+                    memset(&cls.bandwidth_test, 0, sizeof(cls.bandwidth_test));
+                    cls.connect_retry = 0;
+                }
+                break;
+            }
+
+            case svc_sound:
+                CL_ParseSoundPacket(msg, false);
+                cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead(msg) - bufStart;
+                break;
+
+            case svc_deltatable:
+                Delta_ParseTableField(msg);
+                break;
+
+            case svc_clientdata:
+                CL_ParseClientData(msg, PROTO_CURRENT);
+                cl.frames[cl.parsecountmod].graphdata.client += MSG_GetNumBytesRead(msg) - bufStart;
+                break;
+
+            case svc_resource:
+                CL_ParseResource(msg);
+                break;
+
+            case svc_pings:
+                CL_UpdateUserPings(msg);
+                break;
+
+            case svc_restoresound:
+                CL_ParseSoundPacket(msg, true);
+                cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead(msg) - bufStart;
+                break;
+
+            case svc_spawnstatic:
+                CL_ParseStaticEntity(msg);
+                break;
+
+            case svc_event_reliable:
+                CL_ParseReliableEvent(msg, PROTO_CURRENT);
+                cl.frames[cl.parsecountmod].graphdata.event += MSG_GetNumBytesRead(msg) - bufStart;
+                break;
+
+            case svc_spawnbaseline:
+                CL_ParseBaseline(msg, PROTO_CURRENT);
+                break;
+
+            case svc_setpause:
+                cl.paused = (MSG_ReadOneBit(msg) != 0);
+                break;
+
+            case svc_bspdecal:
+                CL_ParseStaticDecal(msg);
+                break;
+
+            case svc_packetentities:
+            {
+                size_t playerbytes = CL_ParsePacketEntities(msg, false, PROTO_CURRENT);
+                cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
+                cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead(msg) - bufStart - playerbytes;
+                break;
+            }
+
+            case svc_deltapacketentities:
+            {
+                size_t playerbytes = CL_ParsePacketEntities(msg, true, PROTO_CURRENT);
+                cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
+                cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead(msg) - bufStart - playerbytes;
+                break;
+            }
+
+            case svc_resourcelist:
+                CL_ParseResourceList(msg, PROTO_CURRENT);
+                break;
+
+            case svc_deltamovevars:
+                CL_ParseMovevars(msg);
+                break;
+
+            default:
+                CL_ParseUserMessage(msg, cmd, PROTO_CURRENT);
+                cl.frames[cl.parsecountmod].graphdata.usr += MSG_GetNumBytesRead(msg) - bufStart;
+                break;
+        }
+    }
 }
