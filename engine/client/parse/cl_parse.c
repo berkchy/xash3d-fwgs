@@ -2315,43 +2315,7 @@ void CL_ParseUserMessage( sizebuf_t *msg, int svc_num, connprotocol_t proto )
 		CL_ParseScreenFade( msg );
 		return;
 	}
-}
-
-void CL_ParseUserMessage( sizebuf_t *msg, int svc_num, connprotocol_t proto )
-{
-	byte	pbuf[MAX_USERMSG_LENGTH];
-	int	i, iSize;
-
-	// NOTE: any user message is really parse at engine, not in client.dll
-	if( svc_num <= svc_lastmsg || svc_num > ( MAX_USER_MESSAGES + svc_lastmsg ))
-	{
-		// out or range
-		Host_Error( "%s: illegible server message %d\n", __func__, svc_num );
-		return;
-	}
-
-	for( i = 0; i < MAX_USER_MESSAGES; i++ )
-	{
-		// search for user message
-		if( clgame.msg[i].number == svc_num )
-			break;
-	}
-
-	if( i == MAX_USER_MESSAGES ) // probably unregistered
-		Host_Error( "%s: illegible server message %d\n", __func__, svc_num );
-
-	// NOTE: some user messages handled into engine
-	if( !Q_strcmp( clgame.msg[i].name, "ScreenShake" ))
-	{
-		CL_ParseScreenShake( msg );
-		return;
-	}
-	else if( !Q_strcmp( clgame.msg[i].name, "ScreenFade" ))
-	{
-		CL_ParseScreenFade( msg );
-		return;
-	}
-
+	
 	iSize = clgame.msg[i].size;
 
 	// message with variable sizes receive an actual size as first byte
