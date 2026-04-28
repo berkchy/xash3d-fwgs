@@ -2593,7 +2593,6 @@ void CL_ParseServerMessage(sizebuf_t *msg)
 {
     size_t bufStart;
     int cmd;
-    int oldReadCount;
 
     while (1)
     {
@@ -2608,42 +2607,23 @@ void CL_ParseServerMessage(sizebuf_t *msg)
         if (MSG_GetNumBitsLeft(msg) < 8)
             break;
 
-        oldReadCount = MSG_GetNumBytesRead(msg);
         cmd = MSG_ReadServerCmd(msg);
 
-        // Sadece önemli mesajları güvenli şekilde logla
-        switch (cmd)
+        // ==================== STUFFTEXT LOG (EN ÖNEMLİ KISIM) ====================
+        if (cmd == svc_stufftext)
         {
-            case svc_stufftext:
-            {
-                char *str = MSG_ReadString(msg);
-                Con_Printf("[STUFFTEXT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-            }
+            int oldPos = MSG_GetNumBytesRead(msg);
+            char *str = MSG_ReadString(msg);
 
-            case svc_print:
-            {
-                char *str = MSG_ReadString(msg);
-                Con_Printf("[PRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-            }
+            // Sunucudan gelen client_cmd'leri logla
+            Con_Printf("[STUFFTEXT] %s\n", str);
 
-            case svc_centerprint:
-            {
-                char *str = MSG_ReadString(msg);
-                Con_Printf("[CENTERPRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-            }
-
-            // Diğer komutlara dokunmuyoruz, sadece geçiyoruz
-            default:
-                break;
+            // Güvenli şekilde geri sar
+            MSG_SeekToBit(msg, oldPos * 8, SEEK_SET);
         }
+        // =========================================================================
 
-        // Orijinal parsing devam ediyor
+        // Orijinal parse devam ediyor
         CL_Parse_RecordCommand(cmd, bufStart);
 
         if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
