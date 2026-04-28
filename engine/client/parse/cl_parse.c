@@ -2593,7 +2593,6 @@ void CL_ParseServerMessage(sizebuf_t *msg)
 {
     size_t bufStart;
     int cmd;
-    int oldReadCount;
 
     while (1)
     {
@@ -2608,42 +2607,23 @@ void CL_ParseServerMessage(sizebuf_t *msg)
         if (MSG_GetNumBitsLeft(msg) < 8)
             break;
 
-        oldReadCount = MSG_GetNumBytesRead(msg);
         cmd = MSG_ReadServerCmd(msg);
 
-        // Sadece önemli mesajları güvenli şekilde logla
-        switch (cmd)
-        {
-            case svc_stufftext:
-            {
-                char *str = MSG_ReadString(msg);
-                Con_Printf("[STUFFTEXT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-            }
+        // Sadece komut numarasını logla (çok güvenli)
+        if (cmd == svc_stufftext)
+            Con_Printf("[STUFFTEXT] detected (cmd %d)\n", cmd);
+        else if (cmd == svc_print)
+            Con_Printf("[PRINT] detected (cmd %d)\n", cmd);
+        else if (cmd == svc_centerprint)
+            Con_Printf("[CENTERPRINT] detected (cmd %d)\n", cmd);
+        else if (cmd == svc_event)
+            Con_Printf("[EVENT] detected (cmd %d)\n", cmd);
+        else if (cmd == svc_event_reliable)
+            Con_Printf("[RELIABLE EVENT] detected (cmd %d)\n", cmd);
+        else if (cmd >= 0 && cmd < 256)
+            Con_Printf("[SVC] Command: %d\n", cmd);
 
-            case svc_print:
-            {
-                char *str = MSG_ReadString(msg);
-                Con_Printf("[PRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-            }
-
-            case svc_centerprint:
-            {
-                char *str = MSG_ReadString(msg);
-                Con_Printf("[CENTERPRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-            }
-
-            // Diğer komutlara dokunmuyoruz, sadece geçiyoruz
-            default:
-                break;
-        }
-
-        // Orijinal parsing devam ediyor
+        // Orijinal parse devam ediyor - hiçbir seek işlemi yapmıyoruz
         CL_Parse_RecordCommand(cmd, bufStart);
 
         if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
