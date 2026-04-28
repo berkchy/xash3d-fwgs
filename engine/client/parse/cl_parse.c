@@ -2611,17 +2611,14 @@ void CL_ParseServerMessage(sizebuf_t *msg)
         oldReadCount = MSG_GetNumBytesRead(msg);
         cmd = MSG_ReadServerCmd(msg);
 
-        // Geri sarıyoruz
-        MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-
-        // Packet Logging
+        // Loglama (geri sarıyoruz)
         switch (cmd)
         {
             case svc_stufftext:
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[STUFFTEXT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
+                MSG_SeekToBit(msg, oldReadCount << 3, SEEK_SET);   // 8 bit = 1 byte
                 break;
             }
 
@@ -2629,7 +2626,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[PRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
+                MSG_SeekToBit(msg, oldReadCount << 3, SEEK_SET);
                 break;
             }
 
@@ -2637,7 +2634,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[CENTERPRINT] %s\n", str);
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
+                MSG_SeekToBit(msg, oldReadCount << 3, SEEK_SET);
                 break;
             }
 
@@ -2649,17 +2646,13 @@ void CL_ParseServerMessage(sizebuf_t *msg)
                 Con_Printf("[EVENT] Reliable Event received\n");
                 break;
 
-            case svc_sound:
-                Con_Printf("[SOUND] Sound packet received\n");
-                break;
-
             default:
                 if (cmd >= 0 && cmd < 256)
                     Con_Printf("[SVC] Command: %d\n", cmd);
                 break;
         }
 
-        // Original parsing continues
+        // Orijinal parse devam ediyor
         CL_Parse_RecordCommand(cmd, bufStart);
 
         if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
