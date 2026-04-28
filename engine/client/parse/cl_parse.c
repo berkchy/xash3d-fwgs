@@ -2608,9 +2608,11 @@ void CL_ParseServerMessage(sizebuf_t *msg)
         if (MSG_GetNumBitsLeft(msg) < 8)
             break;
 
-        oldReadCount = msg->readcount;
+        oldReadCount = MSG_GetNumBytesRead(msg);
         cmd = MSG_ReadServerCmd(msg);
-        msg->readcount = oldReadCount;
+
+        // Geri sarıyoruz
+        MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
 
         // Packet Logging
         switch (cmd)
@@ -2619,7 +2621,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[STUFFTEXT] %s\n", str);
-                msg->readcount = oldReadCount;
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
             }
 
@@ -2627,7 +2629,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[PRINT] %s\n", str);
-                msg->readcount = oldReadCount;
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
             }
 
@@ -2635,7 +2637,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
             {
                 char *str = MSG_ReadString(msg);
                 Con_Printf("[CENTERPRINT] %s\n", str);
-                msg->readcount = oldReadCount;
+                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
                 break;
             }
 
@@ -2657,7 +2659,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
                 break;
         }
 
-        // Original parsing
+        // Original parsing continues
         CL_Parse_RecordCommand(cmd, bufStart);
 
         if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
