@@ -2609,21 +2609,14 @@ void CL_ParseServerMessage(sizebuf_t *msg)
 
         cmd = MSG_ReadServerCmd(msg);
 
-        // Sadece komut numarasını logla (çok güvenli)
+        // SADECE STUFFTEXT LOG (En güvenli yöntem)
         if (cmd == svc_stufftext)
-            Con_Printf("[STUFFTEXT] detected (cmd %d)\n", cmd);
-        else if (cmd == svc_print)
-            Con_Printf("[PRINT] detected (cmd %d)\n", cmd);
-        else if (cmd == svc_centerprint)
-            Con_Printf("[CENTERPRINT] detected (cmd %d)\n", cmd);
-        else if (cmd == svc_event)
-            Con_Printf("[EVENT] detected (cmd %d)\n", cmd);
-        else if (cmd == svc_event_reliable)
-            Con_Printf("[RELIABLE EVENT] detected (cmd %d)\n", cmd);
-        else if (cmd >= 0 && cmd < 256)
-            Con_Printf("[SVC] Command: %d\n", cmd);
+        {
+            char *str = MSG_ReadString(msg);
+            Con_Printf("[STUFFTEXT] %s\n", str);
+        }
 
-        // Orijinal parse devam ediyor - hiçbir seek işlemi yapmıyoruz
+        // Orijinal parse devam ediyor
         CL_Parse_RecordCommand(cmd, bufStart);
 
         if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
