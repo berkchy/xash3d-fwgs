@@ -2611,7 +2611,7 @@ void CL_ParseServerMessage(sizebuf_t *msg)
         oldReadCount = MSG_GetNumBytesRead(msg);
         cmd = MSG_ReadServerCmd(msg);
 
-        // Loglama - Güvenli şekilde
+        // Sadece önemli mesajları güvenli şekilde logla
         switch (cmd)
         {
             case svc_stufftext:
@@ -2638,23 +2638,12 @@ void CL_ParseServerMessage(sizebuf_t *msg)
                 break;
             }
 
-            case svc_event:
-                Con_Printf("[EVENT] Event received\n");
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-
-            case svc_event_reliable:
-                Con_Printf("[EVENT] Reliable Event received\n");
-                MSG_SeekToBit(msg, oldReadCount * 8, SEEK_SET);
-                break;
-
+            // Diğer komutlara dokunmuyoruz, sadece geçiyoruz
             default:
-                if (cmd >= 0 && cmd < 256)
-                    Con_Printf("[SVC] Command: %d\n", cmd);
                 break;
         }
 
-        // Orijinal parse devam ediyor
+        // Orijinal parsing devam ediyor
         CL_Parse_RecordCommand(cmd, bufStart);
 
         if (CL_ParseCommonMessage(msg, PROTO_CURRENT, cmd, bufStart))
