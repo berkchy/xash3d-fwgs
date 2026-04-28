@@ -2609,7 +2609,6 @@ void CL_ParseServerMessage(sizebuf_t *msg)
 
         cmd = MSG_ReadServerCmd(msg);
 
-        // SADECE STUFFTEXT LOG (En güvenli yöntem)
         if (cmd == svc_stufftext)
         {
             char *str = MSG_ReadString(msg);
